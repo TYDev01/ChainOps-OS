@@ -55,4 +55,12 @@ contract AgentManager is Roles {
         agents[agent].enabled = false;
         emit AgentDisabled(agent);
     }
+
+    function setScopes(address agent, uint256 scopes) external onlyRole(AGENT_ADMIN) {
+        if (agents[agent].metadataHash == bytes32(0)) {
+            revert Errors.NotRegistered();
+        }
+        agents[agent].scopes = scopes;
+        emit AgentScopeUpdated(agent, scopes);
+    }
 }
