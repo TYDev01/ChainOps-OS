@@ -61,4 +61,18 @@ contract ChainOpsRegistry is Roles {
         automationRules[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
         emit AutomationRuleRegistered(id, owner, metadataHash);
     }
+
+    function registerAgent(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(AGENT_ADMIN) {
+        if (id == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        if (owner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (agents[id].owner != address(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        agents[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
+        emit AgentRegistered(id, owner, metadataHash);
+    }
 }
