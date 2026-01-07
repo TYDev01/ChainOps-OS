@@ -47,4 +47,18 @@ contract ChainOpsRegistry is Roles {
         analyticsModules[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
         emit AnalyticsModuleRegistered(id, owner, metadataHash);
     }
+
+    function registerAutomationRule(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(RULE_ADMIN) {
+        if (id == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        if (owner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (automationRules[id].owner != address(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        automationRules[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
+        emit AutomationRuleRegistered(id, owner, metadataHash);
+    }
 }
