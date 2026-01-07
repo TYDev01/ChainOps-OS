@@ -19,4 +19,15 @@ contract AlertManager is Roles {
     event AlertTriggered(bytes32 indexed ruleId, address indexed triggeredBy, bytes32 payloadHash, bytes32 channel);
 
     constructor(address admin) Roles(admin) {}
+
+    function registerAlert(bytes32 alertId, bytes32 channel, bytes32 metadataHash) external onlyRole(REGISTRY_ADMIN) {
+        if (alertId == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        if (alerts[alertId].metadataHash != bytes32(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        alerts[alertId] = AlertMetadata({channel: channel, metadataHash: metadataHash});
+        emit AlertRegistered(alertId, channel, metadataHash);
+    }
 }
