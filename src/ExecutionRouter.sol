@@ -28,4 +28,8 @@ contract ExecutionRouter is Roles {
         whitelist[target][selector] = allowed;
         emit TargetWhitelisted(target, selector, allowed);
     }
+
+    function getWhitelist(address target, bytes4 selector) external view returns (bool) {
+        return whitelist[target][selector];
+    }
 }
