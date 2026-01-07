@@ -26,4 +26,8 @@ contract RuleEngine is Roles {
         rules[rule.id] = rule;
         emit RuleRegistered(rule.id, rule.category);
     }
+
+    function getRule(bytes32 ruleId) external view returns (RuleTypes.Rule memory) {
+        return rules[ruleId];
+    }
 }
