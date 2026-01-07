@@ -17,4 +17,15 @@ contract ExecutionRouter is Roles {
     event Executed(bytes32 indexed requestId, bytes32 indexed ruleId, address indexed target, bool success);
 
     constructor(address admin) Roles(admin) {}
+
+    function whitelistTarget(address target, bytes4 selector, bool allowed) external onlyRole(EXECUTOR) {
+        if (target == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (selector == bytes4(0)) {
+            revert Errors.InvalidId();
+        }
+        whitelist[target][selector] = allowed;
+        emit TargetWhitelisted(target, selector, allowed);
+    }
 }
