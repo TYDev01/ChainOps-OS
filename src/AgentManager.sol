@@ -39,4 +39,12 @@ contract AgentManager is Roles {
         agents[agent] = Agent({enabled: true, scopes: 0, metadataHash: metadataHash});
         emit AgentRegistered(agent, metadataHash);
     }
+
+    function enableAgent(address agent) external onlyRole(AGENT_ADMIN) {
+        if (agents[agent].metadataHash == bytes32(0)) {
+            revert Errors.NotRegistered();
+        }
+        agents[agent].enabled = true;
+        emit AgentEnabled(agent);
+    }
 }
