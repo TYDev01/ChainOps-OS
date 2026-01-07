@@ -75,4 +75,8 @@ contract ChainOpsRegistry is Roles {
         agents[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
         emit AgentRegistered(id, owner, metadataHash);
     }
+
+    function getAnalyticsModule(bytes32 id) external view returns (Entry memory) {
+        return analyticsModules[id];
+    }
 }
