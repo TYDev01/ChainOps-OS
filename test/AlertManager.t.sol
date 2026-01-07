@@ -10,4 +10,12 @@ contract AlertManagerTest is Test {
         AlertManager manager = new AlertManager(admin);
         assertTrue(manager.hasRole(manager.DEFAULT_ADMIN_ROLE(), admin));
     }
+
+    function testRegisterAlertRequiresRole() public {
+        AlertManager manager = new AlertManager(address(this));
+        bytes32 alertId = keccak256("alert");
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        manager.registerAlert(alertId, keccak256("channel"), keccak256("meta"));
+    }
 }
