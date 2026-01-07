@@ -43,4 +43,11 @@ contract AlertManagerTest is Test {
         emit AlertManager.AlertTriggered(ruleId, address(this), payload, channel);
         manager.emitAlert(ruleId, payload, alertId);
     }
+
+    function testEmitAlertRevertsWhenUnregistered() public {
+        AlertManager manager = new AlertManager(address(this));
+        manager.grantRole(manager.RULE_ADMIN(), address(this));
+        vm.expectRevert();
+        manager.emitAlert(keccak256("rule"), keccak256("payload"), keccak256("missing"));
+    }
 }
