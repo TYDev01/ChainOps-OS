@@ -18,4 +18,15 @@ contract AlertManagerTest is Test {
         vm.expectRevert();
         manager.registerAlert(alertId, keccak256("channel"), keccak256("meta"));
     }
+
+    function testRegisterAlertEmitsEvent() public {
+        AlertManager manager = new AlertManager(address(this));
+        manager.grantRole(manager.REGISTRY_ADMIN(), address(this));
+        bytes32 alertId = keccak256("alert");
+        bytes32 channel = keccak256("channel");
+        bytes32 meta = keccak256("meta");
+        vm.expectEmit(true, true, false, true);
+        emit AlertManager.AlertRegistered(alertId, channel, meta);
+        manager.registerAlert(alertId, channel, meta);
+    }
 }
