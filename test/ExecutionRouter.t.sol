@@ -18,4 +18,14 @@ contract ExecutionRouterTest is Test {
         vm.expectRevert();
         router.whitelistTarget(address(0xCAFE), bytes4(keccak256("ping()")), true);
     }
+
+    function testWhitelistEmitsEvent() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        address target = address(0xCAFE);
+        bytes4 selector = bytes4(keccak256("ping()"));
+        vm.expectEmit(true, true, false, true);
+        emit ExecutionRouter.TargetWhitelisted(target, selector, true);
+        router.whitelistTarget(target, selector, true);
+    }
 }
