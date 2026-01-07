@@ -34,4 +34,15 @@ contract AlertManager is Roles {
     function getAlert(bytes32 alertId) external view returns (AlertMetadata memory) {
         return alerts[alertId];
     }
+
+    function emitAlert(bytes32 ruleId, bytes32 payloadHash, bytes32 alertId) external onlyRole(RULE_ADMIN) {
+        if (ruleId == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        AlertMetadata memory meta = alerts[alertId];
+        if (meta.metadataHash == bytes32(0)) {
+            revert Errors.NotRegistered();
+        }
+        emit AlertTriggered(ruleId, msg.sender, payloadHash, meta.channel);
+    }
 }
