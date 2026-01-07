@@ -36,4 +36,13 @@ contract AgentManagerTest is Test {
         emit AgentManager.AgentDisabled(address(this));
         manager.disableAgent(address(this));
     }
+
+    function testSetScopesUpdatesState() public {
+        AgentManager manager = new AgentManager(address(this));
+        manager.grantRole(manager.AGENT_ADMIN(), address(this));
+        manager.registerAgent(address(this), keccak256("meta"));
+        manager.setScopes(address(this), 7);
+        AgentManager.Agent memory agent = manager.getAgent(address(this));
+        assertEq(agent.scopes, 7);
+    }
 }
