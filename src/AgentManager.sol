@@ -28,4 +28,15 @@ contract AgentManager is Roles {
     event AgentScopeUpdated(address indexed agent, uint256 scopes);
 
     constructor(address admin) Roles(admin) {}
+
+    function registerAgent(address agent, bytes32 metadataHash) external onlyRole(AGENT_ADMIN) {
+        if (agent == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (agents[agent].metadataHash != bytes32(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        agents[agent] = Agent({enabled: true, scopes: 0, metadataHash: metadataHash});
+        emit AgentRegistered(agent, metadataHash);
+    }
 }
