@@ -10,4 +10,12 @@ contract AgentManagerTest is Test {
         AgentManager manager = new AgentManager(admin);
         assertTrue(manager.hasRole(manager.DEFAULT_ADMIN_ROLE(), admin));
     }
+
+    function testRegisterAgentRequiresRole() public {
+        AgentManager manager = new AgentManager(address(this));
+        address caller = address(0xBEEF);
+        vm.prank(caller);
+        vm.expectRevert();
+        manager.registerAgent(caller, keccak256("meta"));
+    }
 }
