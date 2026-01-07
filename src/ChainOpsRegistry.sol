@@ -79,4 +79,8 @@ contract ChainOpsRegistry is Roles {
     function getAnalyticsModule(bytes32 id) external view returns (Entry memory) {
         return analyticsModules[id];
     }
+
+    function getAutomationRule(bytes32 id) external view returns (Entry memory) {
+        return automationRules[id];
+    }
 }
