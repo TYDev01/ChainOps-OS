@@ -29,4 +29,18 @@ contract AlertManagerTest is Test {
         emit AlertManager.AlertRegistered(alertId, channel, meta);
         manager.registerAlert(alertId, channel, meta);
     }
+
+    function testEmitAlertEmitsEvent() public {
+        AlertManager manager = new AlertManager(address(this));
+        manager.grantRole(manager.REGISTRY_ADMIN(), address(this));
+        manager.grantRole(manager.RULE_ADMIN(), address(this));
+        bytes32 alertId = keccak256("alert");
+        bytes32 channel = keccak256("channel");
+        manager.registerAlert(alertId, channel, keccak256("meta"));
+        bytes32 payload = keccak256("payload");
+        bytes32 ruleId = keccak256("rule");
+        vm.expectEmit(true, true, false, true);
+        emit AlertManager.AlertTriggered(ruleId, address(this), payload, channel);
+        manager.emitAlert(ruleId, payload, alertId);
+    }
 }
