@@ -27,4 +27,13 @@ contract AgentManagerTest is Test {
         emit AgentManager.AgentRegistered(address(this), meta);
         manager.registerAgent(address(this), meta);
     }
+
+    function testDisableAgentEmitsEvent() public {
+        AgentManager manager = new AgentManager(address(this));
+        manager.grantRole(manager.AGENT_ADMIN(), address(this));
+        manager.registerAgent(address(this), keccak256("meta"));
+        vm.expectEmit(true, false, false, false);
+        emit AgentManager.AgentDisabled(address(this));
+        manager.disableAgent(address(this));
+    }
 }
