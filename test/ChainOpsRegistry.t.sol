@@ -48,4 +48,14 @@ contract ChainOpsRegistryTest is Test {
         emit ChainOpsRegistry.AutomationRuleRegistered(id, address(this), meta);
         registry.registerAutomationRule(id, address(this), meta);
     }
+
+    function testRegisterAgentEmitsEvent() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.AGENT_ADMIN(), address(this));
+        bytes32 id = keccak256("agent");
+        bytes32 meta = keccak256("meta");
+        vm.expectEmit(true, true, false, true);
+        emit ChainOpsRegistry.AgentRegistered(id, address(this), meta);
+        registry.registerAgent(id, address(this), meta);
+    }
 }
