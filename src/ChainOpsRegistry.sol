@@ -33,4 +33,18 @@ contract ChainOpsRegistry is Roles {
         }
         return keccak256(abi.encodePacked(kind, owner, metadataHash));
     }
+
+    function registerAnalyticsModule(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(REGISTRY_ADMIN) {
+        if (id == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        if (owner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (analyticsModules[id].owner != address(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        analyticsModules[id] = Entry({owner: owner, enabled: true, metadataHash: metadataHash});
+        emit AnalyticsModuleRegistered(id, owner, metadataHash);
+    }
 }
