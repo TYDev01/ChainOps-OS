@@ -18,4 +18,13 @@ contract AgentManagerTest is Test {
         vm.expectRevert();
         manager.registerAgent(caller, keccak256("meta"));
     }
+
+    function testRegisterAgentEmitsEvent() public {
+        AgentManager manager = new AgentManager(address(this));
+        manager.grantRole(manager.AGENT_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        vm.expectEmit(true, false, false, true);
+        emit AgentManager.AgentRegistered(address(this), meta);
+        manager.registerAgent(address(this), meta);
+    }
 }
