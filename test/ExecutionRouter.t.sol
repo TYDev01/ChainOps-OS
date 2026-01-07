@@ -59,4 +59,22 @@ contract ExecutionRouterTest is Test {
         assertEq(receipt.requestId, req.requestId);
         assertTrue(receipt.success);
     }
+
+    function testExecuteRevertsWhenNotWhitelisted() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(DummyTarget.ping.selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        vm.expectRevert();
+        router.execute(req);
+    }
 }
