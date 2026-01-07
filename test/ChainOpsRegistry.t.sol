@@ -10,4 +10,13 @@ contract ChainOpsRegistryTest is Test {
         ChainOpsRegistry registry = new ChainOpsRegistry(admin);
         assertTrue(registry.hasRole(registry.DEFAULT_ADMIN_ROLE(), admin));
     }
+
+    function testRegisterAnalyticsModuleRequiresRole() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        address caller = address(0xBEEF);
+        bytes32 id = keccak256("module");
+        vm.prank(caller);
+        vm.expectRevert();
+        registry.registerAnalyticsModule(id, caller, keccak256("meta"));
+    }
 }
