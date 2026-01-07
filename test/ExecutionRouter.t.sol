@@ -5,6 +5,12 @@ import "forge-std/Test.sol";
 import {ExecutionRouter} from "../src/ExecutionRouter.sol";
 import {ExecutionTypes} from "../src/ExecutionTypes.sol";
 
+contract DummyTarget {
+    function ping() external pure returns (uint256) {
+        return 42;
+    }
+}
+
 contract ExecutionRouterTest is Test {
     function testConstructorSetsAdmin() public {
         address admin = address(0xA11CE);
@@ -27,5 +33,30 @@ contract ExecutionRouterTest is Test {
         vm.expectEmit(true, true, false, true);
         emit ExecutionRouter.TargetWhitelisted(target, selector, true);
         router.whitelistTarget(target, selector, true);
+    }
+
+    function testExecuteEmitsReceipt() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        bytes4 selector = DummyTarget.ping.selector;
+        router.whitelistTarget(address(target), selector, true);
+
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+
+        vm.expectEmit(true, true, true, false);
+        emit ExecutionRouter.Executed(req.requestId, req.ruleId, req.target, true);
+        ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
+        assertEq(receipt.requestId, req.requestId);
+        assertTrue(receipt.success);
     }
 }
