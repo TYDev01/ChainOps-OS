@@ -15,4 +15,15 @@ contract RuleEngine is Roles {
     event RuleEvaluated(bytes32 indexed ruleId, address indexed triggeredBy, bool passed, bytes32 payloadHash);
 
     constructor(address admin) Roles(admin) {}
+
+    function registerRule(RuleTypes.Rule calldata rule) external onlyRole(RULE_ADMIN) {
+        if (rule.id == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        if (rules[rule.id].id != bytes32(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        rules[rule.id] = rule;
+        emit RuleRegistered(rule.id, rule.category);
+    }
 }
