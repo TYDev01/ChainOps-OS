@@ -63,4 +63,8 @@ contract AgentManager is Roles {
         agents[agent].scopes = scopes;
         emit AgentScopeUpdated(agent, scopes);
     }
+
+    function getAgent(address agent) external view returns (Agent memory) {
+        return agents[agent];
+    }
 }
