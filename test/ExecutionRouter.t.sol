@@ -11,4 +11,11 @@ contract ExecutionRouterTest is Test {
         ExecutionRouter router = new ExecutionRouter(admin);
         assertTrue(router.hasRole(router.DEFAULT_ADMIN_ROLE(), admin));
     }
+
+    function testWhitelistRequiresRole() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        router.whitelistTarget(address(0xCAFE), bytes4(keccak256("ping()")), true);
+    }
 }
