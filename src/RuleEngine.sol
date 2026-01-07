@@ -30,4 +30,40 @@ contract RuleEngine is Roles {
     function getRule(bytes32 ruleId) external view returns (RuleTypes.Rule memory) {
         return rules[ruleId];
     }
+
+    function evaluate(bytes32 ruleId, uint256 value, bytes32 payloadHash) external returns (bool) {
+        RuleTypes.Rule memory rule = rules[ruleId];
+        if (rule.id == bytes32(0)) {
+            revert Errors.RuleNotFound();
+        }
+        if (!rule.enabled) {
+            revert Errors.Disabled();
+        }
+
+        bool passed = _compare(value, rule.threshold, rule.comparison);
+        emit RuleEvaluated(ruleId, msg.sender, passed, payloadHash);
+        return passed;
+    }
+
+    function _compare(uint256 lhs, uint256 rhs, RuleTypes.Comparison op) internal pure returns (bool) {
+        if (op == RuleTypes.Comparison.GT) {
+            return lhs > rhs;
+        }
+        if (op == RuleTypes.Comparison.GTE) {
+            return lhs >= rhs;
+        }
+        if (op == RuleTypes.Comparison.LT) {
+            return lhs < rhs;
+        }
+        if (op == RuleTypes.Comparison.LTE) {
+            return lhs <= rhs;
+        }
+        if (op == RuleTypes.Comparison.EQ) {
+            return lhs == rhs;
+        }
+        if (op == RuleTypes.Comparison.NEQ) {
+            return lhs != rhs;
+        }
+        revert Errors.InvalidId();
+    }
 }
