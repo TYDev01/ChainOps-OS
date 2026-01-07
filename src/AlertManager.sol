@@ -30,4 +30,8 @@ contract AlertManager is Roles {
         alerts[alertId] = AlertMetadata({channel: channel, metadataHash: metadataHash});
         emit AlertRegistered(alertId, channel, metadataHash);
     }
+
+    function getAlert(bytes32 alertId) external view returns (AlertMetadata memory) {
+        return alerts[alertId];
+    }
 }
