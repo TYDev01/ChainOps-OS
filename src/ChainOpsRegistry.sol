@@ -23,4 +23,14 @@ contract ChainOpsRegistry is Roles {
     event AgentRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
 
     constructor(address admin) Roles(admin) {}
+
+    function computeId(bytes32 kind, address owner, bytes32 metadataHash) public pure returns (bytes32) {
+        if (owner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (kind == bytes32(0)) {
+            revert Errors.InvalidId();
+        }
+        return keccak256(abi.encodePacked(kind, owner, metadataHash));
+    }
 }
