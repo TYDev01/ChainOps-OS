@@ -29,4 +29,22 @@ contract RuleEngineTest is Test {
         vm.expectRevert();
         engine.registerRule(rule);
     }
+
+    function testRegisterRuleEmitsEvent() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("rule"),
+            category: RuleTypes.RuleCategory.THRESHOLD,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 10,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        vm.expectEmit(true, false, false, true);
+        emit RuleEngine.RuleRegistered(rule.id, rule.category);
+        engine.registerRule(rule);
+    }
 }
