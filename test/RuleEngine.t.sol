@@ -68,4 +68,22 @@ contract RuleEngineTest is Test {
         bool passed = engine.evaluate(rule.id, 11, payload);
         assertTrue(passed);
     }
+
+    function testEvaluateRevertsWhenDisabled() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("rule"),
+            category: RuleTypes.RuleCategory.THRESHOLD,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 10,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: false,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+        vm.expectRevert();
+        engine.evaluate(rule.id, 11, keccak256("payload"));
+    }
 }
