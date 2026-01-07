@@ -47,4 +47,25 @@ contract RuleEngineTest is Test {
         emit RuleEngine.RuleRegistered(rule.id, rule.category);
         engine.registerRule(rule);
     }
+
+    function testEvaluateEmitsEvent() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("rule"),
+            category: RuleTypes.RuleCategory.THRESHOLD,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 10,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+        bytes32 payload = keccak256("payload");
+        vm.expectEmit(true, true, false, true);
+        emit RuleEngine.RuleEvaluated(rule.id, address(this), true, payload);
+        bool passed = engine.evaluate(rule.id, 11, payload);
+        assertTrue(passed);
+    }
 }
