@@ -38,4 +38,14 @@ contract ChainOpsRegistryTest is Test {
         vm.expectRevert();
         registry.registerAnalyticsModule(id, address(this), keccak256("meta2"));
     }
+
+    function testRegisterAutomationRuleEmitsEvent() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.RULE_ADMIN(), address(this));
+        bytes32 id = keccak256("rule");
+        bytes32 meta = keccak256("meta");
+        vm.expectEmit(true, true, false, true);
+        emit ChainOpsRegistry.AutomationRuleRegistered(id, address(this), meta);
+        registry.registerAutomationRule(id, address(this), meta);
+    }
 }
