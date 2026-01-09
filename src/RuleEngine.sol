@@ -13,6 +13,7 @@ contract RuleEngine is Roles {
 
     event RuleRegistered(bytes32 indexed ruleId, RuleTypes.RuleCategory category);
     event RuleEvaluated(bytes32 indexed ruleId, address indexed triggeredBy, bool passed, bytes32 payloadHash);
+    event RuleStatusUpdated(bytes32 indexed ruleId, bool enabled);
 
     constructor(address admin) Roles(admin) {}
 
@@ -50,6 +51,7 @@ contract RuleEngine is Roles {
             revert Errors.RuleNotFound();
         }
         rules[ruleId].enabled = enabled;
+        emit RuleStatusUpdated(ruleId, enabled);
     }
 
     function _compare(uint256 lhs, uint256 rhs, RuleTypes.Comparison op) internal pure returns (bool) {
