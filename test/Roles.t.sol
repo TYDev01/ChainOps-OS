@@ -11,9 +11,10 @@ contract RolesHarness is Roles {
 contract RolesTest is Test {
     function testGrantRoleRequiresAdmin() public {
         RolesHarness roles = new RolesHarness(address(this));
-        vm.prank(address(0xBEEF));
+        vm.startPrank(address(0xBEEF));
         vm.expectRevert();
         roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
+        vm.stopPrank();
     }
 
     function testGrantRoleUpdatesState() public {
@@ -32,8 +33,9 @@ contract RolesTest is Test {
     function testRevokeRoleRequiresAdmin() public {
         RolesHarness roles = new RolesHarness(address(this));
         roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
-        vm.prank(address(0xBEEF));
+        vm.startPrank(address(0xBEEF));
         vm.expectRevert();
         roles.revokeRole(roles.EXECUTOR(), address(0xCAFE));
+        vm.stopPrank();
     }
 }
