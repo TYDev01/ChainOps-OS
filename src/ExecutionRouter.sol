@@ -41,6 +41,9 @@ contract ExecutionRouter is Roles {
         if (executed[request.requestId]) {
             revert Errors.AlreadyRegistered();
         }
+        if (request.target == address(0)) {
+            revert Errors.InvalidAddress();
+        }
         if (request.callData.length < 4) {
             revert Errors.InvalidId();
         }
