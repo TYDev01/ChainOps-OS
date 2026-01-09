@@ -47,7 +47,8 @@ contract ExecutionRouter is Roles {
         if (request.callData.length < 4) {
             revert Errors.InvalidId();
         }
-        if (!whitelist[request.target][bytes4(request.callData)]) {
+        bytes4 selector = bytes4(request.callData);
+        if (!whitelist[request.target][selector]) {
             revert Errors.TargetNotWhitelisted();
         }
         if (request.gasLimit == 0 || request.gasLimit > block.gaslimit) {
