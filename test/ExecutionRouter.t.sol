@@ -59,6 +59,7 @@ contract ExecutionRouterTest is Test {
         assertEq(receipt.requestId, req.requestId);
         assertTrue(receipt.success);
         assertGt(receipt.gasUsed, 0);
+        assertTrue(router.isExecuted(req.requestId));
     }
 
     function testExecuteRevertsWhenNotWhitelisted() public {
