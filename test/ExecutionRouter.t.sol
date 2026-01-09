@@ -134,4 +134,22 @@ contract ExecutionRouterTest is Test {
         vm.expectRevert();
         router.execute(req);
     }
+
+    function testRequestExecutionEmitsEvent() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(0xCAFE),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(DummyTarget.ping.selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        vm.expectEmit(true, true, true, false);
+        emit ExecutionRouter.ExecutionRequested(req.requestId, req.ruleId, req.target);
+        router.requestExecution(req);
+    }
 }
