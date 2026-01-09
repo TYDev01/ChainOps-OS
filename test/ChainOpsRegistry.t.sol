@@ -78,4 +78,14 @@ contract ChainOpsRegistryTest is Test {
         vm.expectRevert();
         registry.setAutomationRuleStatus(id, false);
     }
+
+    function testSetAgentStatusRequiresRole() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        bytes32 id = keccak256("agent");
+        registry.grantRole(registry.AGENT_ADMIN(), address(this));
+        registry.registerAgent(id, address(this), keccak256("meta"));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        registry.setAgentStatus(id, false);
+    }
 }
