@@ -58,4 +58,14 @@ contract ChainOpsRegistryTest is Test {
         emit ChainOpsRegistry.AgentRegistered(id, address(this), meta);
         registry.registerAgent(id, address(this), meta);
     }
+
+    function testSetAnalyticsModuleStatusRequiresRole() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        bytes32 id = keccak256("module");
+        registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
+        registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        registry.setAnalyticsModuleStatus(id, false);
+    }
 }
