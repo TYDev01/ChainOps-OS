@@ -124,4 +124,13 @@ contract ChainOpsRegistryTest is Test {
         ChainOpsRegistry.Entry memory entry = registry.getAgent(id);
         assertFalse(entry.enabled);
     }
+
+    function testComputeIdMatchesHash() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        bytes32 kind = keccak256("analytics");
+        bytes32 meta = keccak256("meta");
+        bytes32 expected = keccak256(abi.encodePacked(kind, address(this), meta));
+        bytes32 computed = registry.computeId(kind, address(this), meta);
+        assertEq(computed, expected);
+    }
 }
