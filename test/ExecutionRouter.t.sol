@@ -97,4 +97,22 @@ contract ExecutionRouterTest is Test {
         vm.expectRevert();
         router.execute(req);
     }
+
+    function testExecuteRevertsWhenCallDataTooShort() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: hex"1234",
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        vm.expectRevert();
+        router.execute(req);
+    }
 }
