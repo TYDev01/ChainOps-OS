@@ -95,4 +95,12 @@ contract ChainOpsRegistry is Roles {
         analyticsModules[id].enabled = enabled;
         emit AnalyticsModuleRegistered(id, analyticsModules[id].owner, analyticsModules[id].metadataHash);
     }
+
+    function setAutomationRuleStatus(bytes32 id, bool enabled) external onlyRole(RULE_ADMIN) {
+        if (automationRules[id].owner == address(0)) {
+            revert Errors.NotRegistered();
+        }
+        automationRules[id].enabled = enabled;
+        emit AutomationRuleRegistered(id, automationRules[id].owner, automationRules[id].metadataHash);
+    }
 }
