@@ -56,13 +56,14 @@ contract ExecutionRouter is Roles {
         bytes32 returnDataHash = keccak256(returnData);
         executed[request.requestId] = true;
 
+        uint256 gasUsed = request.gasLimit - gasleft();
         ExecutionTypes.ExecutionReceipt memory receipt = ExecutionTypes.ExecutionReceipt({
             requestId: request.requestId,
             ruleId: request.ruleId,
             target: request.target,
             success: success,
             returnDataHash: returnDataHash,
-            gasUsed: request.gasLimit,
+            gasUsed: gasUsed,
             executedBy: msg.sender,
             executedAt: block.timestamp
         });
