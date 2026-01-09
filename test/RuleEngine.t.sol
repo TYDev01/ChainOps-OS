@@ -101,6 +101,8 @@ contract RuleEngineTest is Test {
             metadataHash: keccak256("meta")
         });
         engine.registerRule(rule);
+        vm.expectEmit(true, false, false, true);
+        emit RuleEngine.RuleStatusUpdated(rule.id, false);
         engine.setRuleStatus(rule.id, false);
         RuleTypes.Rule memory stored = engine.getRule(rule.id);
         assertFalse(stored.enabled);
