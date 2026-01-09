@@ -33,10 +33,11 @@ contract RolesTest is Test {
 
     function testRevokeRoleRequiresAdmin() public {
         RolesHarness roles = new RolesHarness(address(this));
-        roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
+        bytes32 execRole = roles.EXECUTOR();
+        roles.grantRole(execRole, address(0xCAFE));
         vm.startPrank(address(0xBEEF));
         vm.expectRevert();
-        roles.revokeRole(roles.EXECUTOR(), address(0xCAFE));
+        roles.revokeRole(execRole, address(0xCAFE));
         vm.stopPrank();
     }
 }
