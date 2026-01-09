@@ -54,13 +54,14 @@ contract ExecutionRouter is Roles {
             revert Errors.Reentrancy();
         }
         locked = true;
+        uint256 gasBefore = gasleft();
         (bool success, bytes memory returnData) = request.target.call{value: request.value, gas: request.gasLimit}(request.callData);
+        uint256 gasUsed = gasBefore - gasleft();
         locked = false;
 
         bytes32 returnDataHash = keccak256(returnData);
         executed[request.requestId] = true;
 
-        uint256 gasUsed = request.gasLimit - gasleft();
         ExecutionTypes.ExecutionReceipt memory receipt = ExecutionTypes.ExecutionReceipt({
             requestId: request.requestId,
             ruleId: request.ruleId,
