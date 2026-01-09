@@ -11,9 +11,10 @@ contract RolesHarness is Roles {
 contract RolesTest is Test {
     function testGrantRoleRequiresAdmin() public {
         RolesHarness roles = new RolesHarness(address(this));
+        bytes32 execRole = roles.EXECUTOR();
         vm.startPrank(address(0xBEEF));
         vm.expectRevert();
-        roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
+        roles.grantRole(execRole, address(0xCAFE));
         vm.stopPrank();
     }
 
