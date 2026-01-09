@@ -43,4 +43,9 @@ abstract contract Roles {
         roles[role][account] = true;
         emit RoleGranted(role, account, msg.sender);
     }
+
+    function revokeRole(bytes32 role, address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        roles[role][account] = false;
+        emit RoleRevoked(role, account, msg.sender);
+    }
 }
