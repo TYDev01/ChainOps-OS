@@ -103,4 +103,12 @@ contract ChainOpsRegistry is Roles {
         automationRules[id].enabled = enabled;
         emit AutomationRuleRegistered(id, automationRules[id].owner, automationRules[id].metadataHash);
     }
+
+    function setAgentStatus(bytes32 id, bool enabled) external onlyRole(AGENT_ADMIN) {
+        if (agents[id].owner == address(0)) {
+            revert Errors.NotRegistered();
+        }
+        agents[id].enabled = enabled;
+        emit AgentRegistered(id, agents[id].owner, agents[id].metadataHash);
+    }
 }
