@@ -15,4 +15,10 @@ contract RolesTest is Test {
         vm.expectRevert();
         roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
     }
+
+    function testGrantRoleUpdatesState() public {
+        RolesHarness roles = new RolesHarness(address(this));
+        roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
+        assertTrue(roles.hasRole(roles.EXECUTOR(), address(0xCAFE)));
+    }
 }
