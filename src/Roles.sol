@@ -35,4 +35,12 @@ abstract contract Roles {
     function hasRole(bytes32 role, address account) public view returns (bool) {
         return roles[role][account];
     }
+
+    function grantRole(bytes32 role, address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (account == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        roles[role][account] = true;
+        emit RoleGranted(role, account, msg.sender);
+    }
 }
