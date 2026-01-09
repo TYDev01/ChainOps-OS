@@ -58,6 +58,7 @@ contract ExecutionRouterTest is Test {
         ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
         assertEq(receipt.requestId, req.requestId);
         assertTrue(receipt.success);
+        assertGt(receipt.gasUsed, 0);
     }
 
     function testExecuteRevertsWhenNotWhitelisted() public {
