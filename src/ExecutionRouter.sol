@@ -37,6 +37,9 @@ contract ExecutionRouter is Roles {
         if (executed[request.requestId]) {
             revert Errors.AlreadyRegistered();
         }
+        if (request.callData.length < 4) {
+            revert Errors.InvalidId();
+        }
         if (!whitelist[request.target][bytes4(request.callData)]) {
             revert Errors.TargetNotWhitelisted();
         }
