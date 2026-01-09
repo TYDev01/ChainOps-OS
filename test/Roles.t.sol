@@ -21,4 +21,11 @@ contract RolesTest is Test {
         roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
         assertTrue(roles.hasRole(roles.EXECUTOR(), address(0xCAFE)));
     }
+
+    function testRevokeRoleUpdatesState() public {
+        RolesHarness roles = new RolesHarness(address(this));
+        roles.grantRole(roles.EXECUTOR(), address(0xCAFE));
+        roles.revokeRole(roles.EXECUTOR(), address(0xCAFE));
+        assertFalse(roles.hasRole(roles.EXECUTOR(), address(0xCAFE)));
+    }
 }
