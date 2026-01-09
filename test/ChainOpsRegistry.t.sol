@@ -23,8 +23,8 @@ contract ChainOpsRegistryTest is Test {
     function testRegisterAnalyticsModuleEmitsEvent() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
-        bytes32 id = keccak256("module");
         bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_ANALYTICS(), address(this), meta);
         vm.expectEmit(true, true, false, true);
         emit ChainOpsRegistry.AnalyticsModuleRegistered(id, address(this), meta);
         registry.registerAnalyticsModule(id, address(this), meta);
@@ -33,8 +33,9 @@ contract ChainOpsRegistryTest is Test {
     function testRegisterAnalyticsModuleRejectsDuplicate() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
-        bytes32 id = keccak256("module");
-        registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_ANALYTICS(), address(this), meta);
+        registry.registerAnalyticsModule(id, address(this), meta);
         vm.expectRevert();
         registry.registerAnalyticsModule(id, address(this), keccak256("meta2"));
     }
@@ -42,8 +43,8 @@ contract ChainOpsRegistryTest is Test {
     function testRegisterAutomationRuleEmitsEvent() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.RULE_ADMIN(), address(this));
-        bytes32 id = keccak256("rule");
         bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_RULE(), address(this), meta);
         vm.expectEmit(true, true, false, true);
         emit ChainOpsRegistry.AutomationRuleRegistered(id, address(this), meta);
         registry.registerAutomationRule(id, address(this), meta);
@@ -52,8 +53,8 @@ contract ChainOpsRegistryTest is Test {
     function testRegisterAgentEmitsEvent() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.AGENT_ADMIN(), address(this));
-        bytes32 id = keccak256("agent");
         bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_AGENT(), address(this), meta);
         vm.expectEmit(true, true, false, true);
         emit ChainOpsRegistry.AgentRegistered(id, address(this), meta);
         registry.registerAgent(id, address(this), meta);
@@ -61,9 +62,10 @@ contract ChainOpsRegistryTest is Test {
 
     function testSetAnalyticsModuleStatusRequiresRole() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
-        bytes32 id = keccak256("module");
         registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
-        registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_ANALYTICS(), address(this), meta);
+        registry.registerAnalyticsModule(id, address(this), meta);
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         registry.setAnalyticsModuleStatus(id, false);
@@ -71,9 +73,10 @@ contract ChainOpsRegistryTest is Test {
 
     function testSetAutomationRuleStatusRequiresRole() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
-        bytes32 id = keccak256("rule");
         registry.grantRole(registry.RULE_ADMIN(), address(this));
-        registry.registerAutomationRule(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_RULE(), address(this), meta);
+        registry.registerAutomationRule(id, address(this), meta);
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         registry.setAutomationRuleStatus(id, false);
@@ -81,9 +84,10 @@ contract ChainOpsRegistryTest is Test {
 
     function testSetAgentStatusRequiresRole() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
-        bytes32 id = keccak256("agent");
         registry.grantRole(registry.AGENT_ADMIN(), address(this));
-        registry.registerAgent(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_AGENT(), address(this), meta);
+        registry.registerAgent(id, address(this), meta);
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         registry.setAgentStatus(id, false);
@@ -92,8 +96,9 @@ contract ChainOpsRegistryTest is Test {
     function testSetAnalyticsModuleStatusUpdatesState() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
-        bytes32 id = keccak256("module");
-        registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_ANALYTICS(), address(this), meta);
+        registry.registerAnalyticsModule(id, address(this), meta);
         vm.expectEmit(true, false, false, true);
         emit ChainOpsRegistry.AnalyticsModuleStatusUpdated(id, false);
         registry.setAnalyticsModuleStatus(id, false);
@@ -104,8 +109,9 @@ contract ChainOpsRegistryTest is Test {
     function testSetAutomationRuleStatusUpdatesState() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.RULE_ADMIN(), address(this));
-        bytes32 id = keccak256("rule");
-        registry.registerAutomationRule(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_RULE(), address(this), meta);
+        registry.registerAutomationRule(id, address(this), meta);
         vm.expectEmit(true, false, false, true);
         emit ChainOpsRegistry.AutomationRuleStatusUpdated(id, false);
         registry.setAutomationRuleStatus(id, false);
@@ -116,8 +122,9 @@ contract ChainOpsRegistryTest is Test {
     function testSetAgentStatusUpdatesState() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
         registry.grantRole(registry.AGENT_ADMIN(), address(this));
-        bytes32 id = keccak256("agent");
-        registry.registerAgent(id, address(this), keccak256("meta"));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_AGENT(), address(this), meta);
+        registry.registerAgent(id, address(this), meta);
         vm.expectEmit(true, false, false, true);
         emit ChainOpsRegistry.AgentStatusUpdated(id, false);
         registry.setAgentStatus(id, false);
@@ -127,10 +134,19 @@ contract ChainOpsRegistryTest is Test {
 
     function testComputeIdMatchesHash() public {
         ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
-        bytes32 kind = keccak256("analytics");
+        bytes32 kind = registry.KIND_ANALYTICS();
         bytes32 meta = keccak256("meta");
         bytes32 expected = keccak256(abi.encodePacked(kind, address(this), meta));
         bytes32 computed = registry.computeId(kind, address(this), meta);
         assertEq(computed, expected);
+    }
+
+    function testRegisterAnalyticsModuleRejectsWrongId() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 wrongId = keccak256("wrong");
+        vm.expectRevert();
+        registry.registerAnalyticsModule(wrongId, address(this), meta);
     }
 }
