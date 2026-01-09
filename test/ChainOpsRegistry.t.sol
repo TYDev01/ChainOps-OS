@@ -98,4 +98,14 @@ contract ChainOpsRegistryTest is Test {
         ChainOpsRegistry.Entry memory entry = registry.getAnalyticsModule(id);
         assertFalse(entry.enabled);
     }
+
+    function testSetAutomationRuleStatusUpdatesState() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.RULE_ADMIN(), address(this));
+        bytes32 id = keccak256("rule");
+        registry.registerAutomationRule(id, address(this), keccak256("meta"));
+        registry.setAutomationRuleStatus(id, false);
+        ChainOpsRegistry.Entry memory entry = registry.getAutomationRule(id);
+        assertFalse(entry.enabled);
+    }
 }
