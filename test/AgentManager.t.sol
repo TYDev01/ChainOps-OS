@@ -45,4 +45,15 @@ contract AgentManagerTest is Test {
         AgentManager.Agent memory agent = manager.getAgent(address(this));
         assertEq(agent.scopes, 7);
     }
+
+    function testHasScopeReflectsState() public {
+        AgentManager manager = new AgentManager(address(this));
+        manager.grantRole(manager.AGENT_ADMIN(), address(this));
+        manager.registerAgent(address(this), keccak256("meta"));
+        manager.setScopes(address(this), 1 << uint256(AgentManager.Scope.ALERT));
+        bool hasAlert = manager.hasScope(address(this), AgentManager.Scope.ALERT);
+        bool hasExecute = manager.hasScope(address(this), AgentManager.Scope.EXECUTE);
+        assertTrue(hasAlert);
+        assertFalse(hasExecute);
+    }
 }
