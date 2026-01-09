@@ -67,4 +67,9 @@ contract AgentManager is Roles {
     function getAgent(address agent) external view returns (Agent memory) {
         return agents[agent];
     }
+
+    function hasScope(address agent, Scope scope) external view returns (bool) {
+        uint256 mask = 1 << uint256(scope);
+        return (agents[agent].scopes & mask) != 0;
+    }
 }
