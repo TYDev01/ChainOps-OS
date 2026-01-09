@@ -18,6 +18,10 @@ contract ChainOpsRegistry is Roles {
     mapping(bytes32 => Entry) private automationRules;
     mapping(bytes32 => Entry) private agents;
 
+    bytes32 public constant KIND_ANALYTICS = keccak256("ANALYTICS_MODULE");
+    bytes32 public constant KIND_RULE = keccak256("AUTOMATION_RULE");
+    bytes32 public constant KIND_AGENT = keccak256("AGENT");
+
     event AnalyticsModuleRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
     event AnalyticsModuleStatusUpdated(bytes32 indexed id, bool enabled);
     event AutomationRuleRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
@@ -38,7 +42,8 @@ contract ChainOpsRegistry is Roles {
     }
 
     function registerAnalyticsModule(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(REGISTRY_ADMIN) {
-        if (id == bytes32(0)) {
+        bytes32 computed = computeId(KIND_ANALYTICS, owner, metadataHash);
+        if (id != computed) {
             revert Errors.InvalidId();
         }
         if (owner == address(0)) {
@@ -52,7 +57,8 @@ contract ChainOpsRegistry is Roles {
     }
 
     function registerAutomationRule(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(RULE_ADMIN) {
-        if (id == bytes32(0)) {
+        bytes32 computed = computeId(KIND_RULE, owner, metadataHash);
+        if (id != computed) {
             revert Errors.InvalidId();
         }
         if (owner == address(0)) {
@@ -66,7 +72,8 @@ contract ChainOpsRegistry is Roles {
     }
 
     function registerAgent(bytes32 id, address owner, bytes32 metadataHash) external onlyRole(AGENT_ADMIN) {
-        if (id == bytes32(0)) {
+        bytes32 computed = computeId(KIND_AGENT, owner, metadataHash);
+        if (id != computed) {
             revert Errors.InvalidId();
         }
         if (owner == address(0)) {
