@@ -45,6 +45,13 @@ contract RuleEngine is Roles {
         return passed;
     }
 
+    function setRuleStatus(bytes32 ruleId, bool enabled) external onlyRole(RULE_ADMIN) {
+        if (rules[ruleId].id == bytes32(0)) {
+            revert Errors.RuleNotFound();
+        }
+        rules[ruleId].enabled = enabled;
+    }
+
     function _compare(uint256 lhs, uint256 rhs, RuleTypes.Comparison op) internal pure returns (bool) {
         if (op == RuleTypes.Comparison.GT) {
             return lhs > rhs;
