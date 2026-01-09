@@ -19,8 +19,11 @@ contract ChainOpsRegistry is Roles {
     mapping(bytes32 => Entry) private agents;
 
     event AnalyticsModuleRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
+    event AnalyticsModuleStatusUpdated(bytes32 indexed id, bool enabled);
     event AutomationRuleRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
+    event AutomationRuleStatusUpdated(bytes32 indexed id, bool enabled);
     event AgentRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
+    event AgentStatusUpdated(bytes32 indexed id, bool enabled);
 
     constructor(address admin) Roles(admin) {}
 
@@ -93,7 +96,7 @@ contract ChainOpsRegistry is Roles {
             revert Errors.NotRegistered();
         }
         analyticsModules[id].enabled = enabled;
-        emit AnalyticsModuleRegistered(id, analyticsModules[id].owner, analyticsModules[id].metadataHash);
+        emit AnalyticsModuleStatusUpdated(id, enabled);
     }
 
     function setAutomationRuleStatus(bytes32 id, bool enabled) external onlyRole(RULE_ADMIN) {
@@ -101,7 +104,7 @@ contract ChainOpsRegistry is Roles {
             revert Errors.NotRegistered();
         }
         automationRules[id].enabled = enabled;
-        emit AutomationRuleRegistered(id, automationRules[id].owner, automationRules[id].metadataHash);
+        emit AutomationRuleStatusUpdated(id, enabled);
     }
 
     function setAgentStatus(bytes32 id, bool enabled) external onlyRole(AGENT_ADMIN) {
@@ -109,6 +112,6 @@ contract ChainOpsRegistry is Roles {
             revert Errors.NotRegistered();
         }
         agents[id].enabled = enabled;
-        emit AgentRegistered(id, agents[id].owner, agents[id].metadataHash);
+        emit AgentStatusUpdated(id, enabled);
     }
 }
