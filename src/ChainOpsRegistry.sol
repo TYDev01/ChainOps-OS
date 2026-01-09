@@ -87,4 +87,12 @@ contract ChainOpsRegistry is Roles {
     function getAgent(bytes32 id) external view returns (Entry memory) {
         return agents[id];
     }
+
+    function setAnalyticsModuleStatus(bytes32 id, bool enabled) external onlyRole(REGISTRY_ADMIN) {
+        if (analyticsModules[id].owner == address(0)) {
+            revert Errors.NotRegistered();
+        }
+        analyticsModules[id].enabled = enabled;
+        emit AnalyticsModuleRegistered(id, analyticsModules[id].owner, analyticsModules[id].metadataHash);
+    }
 }
