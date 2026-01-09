@@ -88,4 +88,14 @@ contract ChainOpsRegistryTest is Test {
         vm.expectRevert();
         registry.setAgentStatus(id, false);
     }
+
+    function testSetAnalyticsModuleStatusUpdatesState() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
+        bytes32 id = keccak256("module");
+        registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        registry.setAnalyticsModuleStatus(id, false);
+        ChainOpsRegistry.Entry memory entry = registry.getAnalyticsModule(id);
+        assertFalse(entry.enabled);
+    }
 }
