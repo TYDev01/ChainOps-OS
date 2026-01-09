@@ -94,6 +94,8 @@ contract ChainOpsRegistryTest is Test {
         registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
         bytes32 id = keccak256("module");
         registry.registerAnalyticsModule(id, address(this), keccak256("meta"));
+        vm.expectEmit(true, false, false, true);
+        emit ChainOpsRegistry.AnalyticsModuleStatusUpdated(id, false);
         registry.setAnalyticsModuleStatus(id, false);
         ChainOpsRegistry.Entry memory entry = registry.getAnalyticsModule(id);
         assertFalse(entry.enabled);
@@ -104,6 +106,8 @@ contract ChainOpsRegistryTest is Test {
         registry.grantRole(registry.RULE_ADMIN(), address(this));
         bytes32 id = keccak256("rule");
         registry.registerAutomationRule(id, address(this), keccak256("meta"));
+        vm.expectEmit(true, false, false, true);
+        emit ChainOpsRegistry.AutomationRuleStatusUpdated(id, false);
         registry.setAutomationRuleStatus(id, false);
         ChainOpsRegistry.Entry memory entry = registry.getAutomationRule(id);
         assertFalse(entry.enabled);
@@ -114,6 +118,8 @@ contract ChainOpsRegistryTest is Test {
         registry.grantRole(registry.AGENT_ADMIN(), address(this));
         bytes32 id = keccak256("agent");
         registry.registerAgent(id, address(this), keccak256("meta"));
+        vm.expectEmit(true, false, false, true);
+        emit ChainOpsRegistry.AgentStatusUpdated(id, false);
         registry.setAgentStatus(id, false);
         ChainOpsRegistry.Entry memory entry = registry.getAgent(id);
         assertFalse(entry.enabled);
