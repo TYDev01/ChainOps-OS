@@ -73,20 +73,25 @@ contract ExecutionRouter is Roles {
     }
 
     function execute(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) returns (ExecutionTypes.ExecutionReceipt memory) {
-        if (executed[request.requestId]) {
+        ExecutionTypes.ExecutionRequest memory req = request;
+        ExecutionTypes.ExecutionRequest memory stored = requests[request.requestId];
+        if (stored.requestId != bytes32(0)) {
+            req = stored;
+        }
+        if (executed[req.requestId]) {
             revert Errors.AlreadyRegistered();
         }
-        if (request.target == address(0)) {
+        if (req.target == address(0)) {
             revert Errors.InvalidAddress();
         }
-        if (request.callData.length < 4) {
+        if (req.callData.length < 4) {
             revert Errors.InvalidId();
         }
-        bytes4 selector = bytes4(request.callData);
-        if (!whitelist[request.target][selector]) {
+        bytes4 selector = bytes4(req.callData);
+        if (!whitelist[req.target][selector]) {
             revert Errors.TargetNotWhitelisted();
         }
-        if (request.gasLimit == 0 || request.gasLimit > block.gaslimit) {
+        if (req.gasLimit == 0 || req.gasLimit > block.gaslimit) {
             revert Errors.GasLimitExceeded();
         }
         if (locked) {
@@ -94,17 +99,17 @@ contract ExecutionRouter is Roles {
         }
         locked = true;
         uint256 gasBefore = gasleft();
-        (bool success, bytes memory returnData) = request.target.call{value: request.value, gas: request.gasLimit}(request.callData);
+        (bool success, bytes memory returnData) = req.target.call{value: req.value, gas: req.gasLimit}(req.callData);
         uint256 gasUsed = gasBefore - gasleft();
         locked = false;
 
         bytes32 returnDataHash = keccak256(returnData);
-        executed[request.requestId] = true;
+        executed[req.requestId] = true;
 
         ExecutionTypes.ExecutionReceipt memory receipt = ExecutionTypes.ExecutionReceipt({
-            requestId: request.requestId,
-            ruleId: request.ruleId,
-            target: request.target,
+            requestId: req.requestId,
+            ruleId: req.ruleId,
+            target: req.target,
             success: success,
             returnDataHash: returnDataHash,
             gasUsed: gasUsed,
@@ -112,9 +117,9 @@ contract ExecutionRouter is Roles {
             executedAt: block.timestamp
         });
         emit Executed(
-            request.requestId,
-            request.ruleId,
-            request.target,
+            req.requestId,
+            req.ruleId,
+            req.target,
             success,
             returnDataHash,
             gasUsed,
