@@ -126,4 +126,44 @@ contract RuleEngineTest is Test {
         vm.expectRevert();
         engine.setRuleStatus(rule.id, false);
     }
+
+    function testDeltaRuleEvaluatesOnSecondValue() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("delta"),
+            category: RuleTypes.RuleCategory.DELTA,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 5,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+        bool first = engine.evaluate(rule.id, 10, keccak256("payload1"));
+        assertFalse(first);
+        bool second = engine.evaluate(rule.id, 20, keccak256("payload2"));
+        assertTrue(second);
+    }
+
+    function testFrequencyRuleCountsWithinWindow() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("freq"),
+            category: RuleTypes.RuleCategory.FREQUENCY,
+            comparison: RuleTypes.Comparison.GTE,
+            threshold: 0,
+            timeWindow: 100,
+            frequency: 2,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+        bool first = engine.evaluate(rule.id, 1, keccak256("payload1"));
+        assertFalse(first);
+        bool second = engine.evaluate(rule.id, 1, keccak256("payload2"));
+        assertTrue(second);
+    }
 }
