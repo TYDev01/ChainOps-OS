@@ -5,6 +5,18 @@ import "forge-std/Test.sol";
 import {RuleEngine} from "../src/RuleEngine.sol";
 import {RuleTypes} from "../src/RuleTypes.sol";
 
+contract AgentManagerMock {
+    bool public allowed;
+
+    function setAllowed(bool value) external {
+        allowed = value;
+    }
+
+    function hasScope(address, uint8) external view returns (bool) {
+        return allowed;
+    }
+}
+
 contract RuleEngineTest is Test {
     function testConstructorSetsAdmin() public {
         address admin = address(0xA11CE);
@@ -189,5 +201,31 @@ contract RuleEngineTest is Test {
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         engine.setAgentManager(address(0xCAFE));
+    }
+
+    function testEvaluateRespectsAgentScope() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        AgentManagerMock manager = new AgentManagerMock();
+        engine.setAgentManager(address(manager));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("rule"),
+            category: RuleTypes.RuleCategory.THRESHOLD,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 10,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+
+        manager.setAllowed(false);
+        vm.expectRevert();
+        engine.evaluate(rule.id, 11, keccak256("payload"));
+
+        manager.setAllowed(true);
+        bool passed = engine.evaluate(rule.id, 11, keccak256("payload2"));
+        assertTrue(passed);
     }
 }
