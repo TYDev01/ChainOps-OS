@@ -183,4 +183,11 @@ contract RuleEngineTest is Test {
         vm.expectRevert();
         engine.registerRule(rule);
     }
+
+    function testSetAgentManagerRequiresAdmin() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        engine.setAgentManager(address(0xCAFE));
+    }
 }
