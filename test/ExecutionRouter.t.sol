@@ -54,7 +54,16 @@ contract ExecutionRouterTest is Test {
         });
 
         vm.expectEmit(true, true, true, false);
-        emit ExecutionRouter.Executed(req.requestId, req.ruleId, req.target, true);
+        emit ExecutionRouter.Executed(
+            req.requestId,
+            req.ruleId,
+            req.target,
+            true,
+            keccak256(abi.encode(uint256(42))),
+            0,
+            address(this),
+            block.timestamp
+        );
         ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
         assertEq(receipt.requestId, req.requestId);
         assertTrue(receipt.success);
