@@ -71,6 +71,42 @@ contract ExecutionRouterTest is Test {
         assertTrue(router.isExecuted(req.requestId));
     }
 
+    function testExecuteUsesStoredRequest() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        bytes4 selector = DummyTarget.ping.selector;
+        router.whitelistTarget(address(target), selector, true);
+
+        ExecutionTypes.ExecutionRequest memory storedReq = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("stored"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        router.requestExecution(storedReq);
+
+        ExecutionTypes.ExecutionRequest memory execReq = ExecutionTypes.ExecutionRequest({
+            requestId: storedReq.requestId,
+            ruleId: keccak256("other"),
+            target: address(0xBEEF),
+            value: 1,
+            gasLimit: 1,
+            callData: hex"1234",
+            requestedBy: address(0xBEEF),
+            requestedAt: block.timestamp
+        });
+
+        ExecutionTypes.ExecutionReceipt memory receipt = router.execute(execReq);
+        assertEq(receipt.requestId, storedReq.requestId);
+        assertEq(receipt.target, address(target));
+        assertTrue(receipt.success);
+    }
+
     function testExecuteRevertsWhenNotWhitelisted() public {
         ExecutionRouter router = new ExecutionRouter(address(this));
         router.grantRole(router.EXECUTOR(), address(this));
