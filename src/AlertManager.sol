@@ -4,6 +4,16 @@ pragma solidity ^0.8.28;
 import {Errors} from "./Errors.sol";
 import {Roles} from "./Roles.sol";
 
+interface IAlertAgentManager {
+    enum Scope {
+        READ,
+        ALERT,
+        EXECUTE
+    }
+
+    function hasScope(address agent, Scope scope) external view returns (bool);
+}
+
 /// @title AlertManager
 /// @notice Emits structured on-chain alerts.
 /// @dev Invariant: alerts are emitted with rule id, trigger source, and payload hash.
@@ -14,11 +24,21 @@ contract AlertManager is Roles {
     }
 
     mapping(bytes32 => AlertMetadata) private alerts;
+    address public agentManager;
 
     event AlertRegistered(bytes32 indexed alertId, bytes32 indexed channel, bytes32 metadataHash);
     event AlertTriggered(bytes32 indexed ruleId, address indexed triggeredBy, bytes32 payloadHash, bytes32 channel, uint256 timestamp);
+    event AgentManagerUpdated(address indexed agentManager);
 
     constructor(address admin) Roles(admin) {}
+
+    function setAgentManager(address manager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (manager == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        agentManager = manager;
+        emit AgentManagerUpdated(manager);
+    }
 
     function registerAlert(bytes32 alertId, bytes32 channel, bytes32 metadataHash) external onlyRole(REGISTRY_ADMIN) {
         if (alertId == bytes32(0)) {
