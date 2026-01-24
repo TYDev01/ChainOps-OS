@@ -10,6 +10,14 @@ import {RuleTypes} from "./RuleTypes.sol";
 /// @dev Invariant: rules are data-only and evaluation emits events.
 contract RuleEngine is Roles {
     mapping(bytes32 => RuleTypes.Rule) private rules;
+    mapping(bytes32 => uint256) private lastValues;
+    mapping(bytes32 => bool) private hasLastValue;
+    mapping(bytes32 => FrequencyState) private frequencyStates;
+
+    struct FrequencyState {
+        uint256 count;
+        uint256 windowStart;
+    }
 
     event RuleRegistered(bytes32 indexed ruleId, RuleTypes.RuleCategory category);
     event RuleEvaluated(bytes32 indexed ruleId, address indexed triggeredBy, bool passed, bytes32 payloadHash);
@@ -41,7 +49,36 @@ contract RuleEngine is Roles {
             revert Errors.Disabled();
         }
 
-        bool passed = _compare(value, rule.threshold, rule.comparison);
+        bool passed;
+        if (rule.category == RuleTypes.RuleCategory.THRESHOLD) {
+            passed = _compare(value, rule.threshold, rule.comparison);
+        } else if (rule.category == RuleTypes.RuleCategory.DELTA) {
+            if (!hasLastValue[ruleId]) {
+                hasLastValue[ruleId] = true;
+                lastValues[ruleId] = value;
+                passed = false;
+            } else {
+                uint256 prev = lastValues[ruleId];
+                uint256 delta = value > prev ? value - prev : prev - value;
+                lastValues[ruleId] = value;
+                passed = _compare(delta, rule.threshold, rule.comparison);
+            }
+        } else if (rule.category == RuleTypes.RuleCategory.FREQUENCY) {
+            if (rule.timeWindow == 0 || rule.frequency == 0) {
+                revert Errors.InvalidId();
+            }
+            FrequencyState memory state = frequencyStates[ruleId];
+            if (state.windowStart == 0 || block.timestamp > state.windowStart + rule.timeWindow) {
+                state.windowStart = block.timestamp;
+                state.count = 1;
+            } else {
+                state.count += 1;
+            }
+            frequencyStates[ruleId] = state;
+            passed = _compare(state.count, rule.frequency, rule.comparison);
+        } else {
+            revert Errors.InvalidId();
+        }
         emit RuleEvaluated(ruleId, msg.sender, passed, payloadHash);
         return passed;
     }
