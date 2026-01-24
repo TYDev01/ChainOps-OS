@@ -13,6 +13,7 @@ contract RuleEngine is Roles {
     mapping(bytes32 => uint256) private lastValues;
     mapping(bytes32 => bool) private hasLastValue;
     mapping(bytes32 => FrequencyState) private frequencyStates;
+    address public agentManager;
 
     struct FrequencyState {
         uint256 count;
@@ -22,8 +23,17 @@ contract RuleEngine is Roles {
     event RuleRegistered(bytes32 indexed ruleId, RuleTypes.RuleCategory category);
     event RuleEvaluated(bytes32 indexed ruleId, address indexed triggeredBy, bool passed, bytes32 payloadHash);
     event RuleStatusUpdated(bytes32 indexed ruleId, bool enabled);
+    event AgentManagerUpdated(address indexed agentManager);
 
     constructor(address admin) Roles(admin) {}
+
+    function setAgentManager(address manager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (manager == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        agentManager = manager;
+        emit AgentManagerUpdated(manager);
+    }
 
     function registerRule(RuleTypes.Rule calldata rule) external onlyRole(RULE_ADMIN) {
         if (rule.id == bytes32(0)) {
