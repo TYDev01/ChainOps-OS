@@ -73,11 +73,11 @@ contract ExecutionRouter is Roles {
     }
 
     function execute(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) returns (ExecutionTypes.ExecutionReceipt memory) {
-        ExecutionTypes.ExecutionRequest memory req = request;
         ExecutionTypes.ExecutionRequest memory stored = requests[request.requestId];
-        if (stored.requestId != bytes32(0)) {
-            req = stored;
+        if (stored.requestId == bytes32(0)) {
+            revert Errors.NotRegistered();
         }
+        ExecutionTypes.ExecutionRequest memory req = stored;
         if (executed[req.requestId]) {
             revert Errors.AlreadyRegistered();
         }
