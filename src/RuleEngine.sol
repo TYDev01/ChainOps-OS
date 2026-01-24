@@ -5,6 +5,16 @@ import {Errors} from "./Errors.sol";
 import {Roles} from "./Roles.sol";
 import {RuleTypes} from "./RuleTypes.sol";
 
+interface IAgentManager {
+    enum Scope {
+        READ,
+        ALERT,
+        EXECUTE
+    }
+
+    function hasScope(address agent, Scope scope) external view returns (bool);
+}
+
 /// @title RuleEngine
 /// @notice Defines and evaluates automation rules.
 /// @dev Invariant: rules are data-only and evaluation emits events.
@@ -56,6 +66,12 @@ contract RuleEngine is Roles {
     }
 
     function evaluate(bytes32 ruleId, uint256 value, bytes32 payloadHash) external returns (bool) {
+        if (agentManager != address(0)) {
+            bool allowed = IAgentManager(agentManager).hasScope(msg.sender, IAgentManager.Scope.READ);
+            if (!allowed) {
+                revert Errors.ScopeNotAllowed();
+            }
+        }
         RuleTypes.Rule memory rule = rules[ruleId];
         if (rule.id == bytes32(0)) {
             revert Errors.RuleNotFound();
