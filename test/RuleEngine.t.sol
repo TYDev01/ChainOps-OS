@@ -166,4 +166,21 @@ contract RuleEngineTest is Test {
         bool second = engine.evaluate(rule.id, 1, keccak256("payload2"));
         assertTrue(second);
     }
+
+    function testRegisterFrequencyRuleRejectsZeroParams() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("freq"),
+            category: RuleTypes.RuleCategory.FREQUENCY,
+            comparison: RuleTypes.Comparison.GTE,
+            threshold: 0,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        vm.expectRevert();
+        engine.registerRule(rule);
+    }
 }
