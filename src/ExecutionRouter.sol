@@ -14,7 +14,16 @@ contract ExecutionRouter is Roles {
     bool private locked;
 
     event TargetWhitelisted(address indexed target, bytes4 indexed selector, bool allowed);
-    event Executed(bytes32 indexed requestId, bytes32 indexed ruleId, address indexed target, bool success);
+    event Executed(
+        bytes32 indexed requestId,
+        bytes32 indexed ruleId,
+        address indexed target,
+        bool success,
+        bytes32 returnDataHash,
+        uint256 gasUsed,
+        address executedBy,
+        uint256 executedAt
+    );
     event ExecutionRequested(bytes32 indexed requestId, bytes32 indexed ruleId, address indexed target);
 
     constructor(address admin) Roles(admin) {}
@@ -84,7 +93,16 @@ contract ExecutionRouter is Roles {
             executedBy: msg.sender,
             executedAt: block.timestamp
         });
-        emit Executed(request.requestId, request.ruleId, request.target, success);
+        emit Executed(
+            request.requestId,
+            request.ruleId,
+            request.target,
+            success,
+            returnDataHash,
+            gasUsed,
+            msg.sender,
+            block.timestamp
+        );
         return receipt;
     }
 }
