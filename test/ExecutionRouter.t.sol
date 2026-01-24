@@ -64,6 +64,7 @@ contract ExecutionRouterTest is Test {
             address(this),
             block.timestamp
         );
+        router.requestExecution(req);
         ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
         assertEq(receipt.requestId, req.requestId);
         assertTrue(receipt.success);
@@ -121,6 +122,7 @@ contract ExecutionRouterTest is Test {
             requestedBy: address(this),
             requestedAt: block.timestamp
         });
+        router.requestExecution(req);
         vm.expectRevert();
         router.execute(req);
     }
@@ -141,6 +143,7 @@ contract ExecutionRouterTest is Test {
             requestedBy: address(this),
             requestedAt: block.timestamp
         });
+        router.requestExecution(req);
         vm.expectRevert();
         router.execute(req);
     }
@@ -159,6 +162,7 @@ contract ExecutionRouterTest is Test {
             requestedBy: address(this),
             requestedAt: block.timestamp
         });
+        router.requestExecution(req);
         vm.expectRevert();
         router.execute(req);
     }
@@ -176,6 +180,7 @@ contract ExecutionRouterTest is Test {
             requestedBy: address(this),
             requestedAt: block.timestamp
         });
+        router.requestExecution(req);
         vm.expectRevert();
         router.execute(req);
     }
