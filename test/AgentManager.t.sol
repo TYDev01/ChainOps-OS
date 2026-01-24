@@ -56,4 +56,14 @@ contract AgentManagerTest is Test {
         assertTrue(hasAlert);
         assertFalse(hasExecute);
     }
+
+    function testHasScopeRequiresEnabledAgent() public {
+        AgentManager manager = new AgentManager(address(this));
+        manager.grantRole(manager.AGENT_ADMIN(), address(this));
+        manager.registerAgent(address(this), keccak256("meta"));
+        manager.setScopes(address(this), 1 << uint256(AgentManager.Scope.ALERT));
+        manager.disableAgent(address(this));
+        bool hasAlert = manager.hasScope(address(this), AgentManager.Scope.ALERT);
+        assertFalse(hasAlert);
+    }
 }
