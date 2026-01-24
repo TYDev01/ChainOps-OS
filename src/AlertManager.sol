@@ -56,6 +56,12 @@ contract AlertManager is Roles {
     }
 
     function emitAlert(bytes32 ruleId, bytes32 payloadHash, bytes32 alertId) external onlyRole(RULE_ADMIN) {
+        if (agentManager != address(0)) {
+            bool allowed = IAlertAgentManager(agentManager).hasScope(msg.sender, IAlertAgentManager.Scope.ALERT);
+            if (!allowed) {
+                revert Errors.ScopeNotAllowed();
+            }
+        }
         if (ruleId == bytes32(0)) {
             revert Errors.InvalidId();
         }
