@@ -29,6 +29,11 @@ contract RuleEngine is Roles {
         if (rule.id == bytes32(0)) {
             revert Errors.InvalidId();
         }
+        if (rule.category == RuleTypes.RuleCategory.FREQUENCY) {
+            if (rule.timeWindow == 0 || rule.frequency == 0) {
+                revert Errors.InvalidId();
+            }
+        }
         if (rules[rule.id].id != bytes32(0)) {
             revert Errors.AlreadyRegistered();
         }
