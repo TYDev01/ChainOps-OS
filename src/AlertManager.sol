@@ -16,7 +16,7 @@ contract AlertManager is Roles {
     mapping(bytes32 => AlertMetadata) private alerts;
 
     event AlertRegistered(bytes32 indexed alertId, bytes32 indexed channel, bytes32 metadataHash);
-    event AlertTriggered(bytes32 indexed ruleId, address indexed triggeredBy, bytes32 payloadHash, bytes32 channel);
+    event AlertTriggered(bytes32 indexed ruleId, address indexed triggeredBy, bytes32 payloadHash, bytes32 channel, uint256 timestamp);
 
     constructor(address admin) Roles(admin) {}
 
@@ -43,6 +43,6 @@ contract AlertManager is Roles {
         if (meta.metadataHash == bytes32(0)) {
             revert Errors.NotRegistered();
         }
-        emit AlertTriggered(ruleId, msg.sender, payloadHash, meta.channel);
+        emit AlertTriggered(ruleId, msg.sender, payloadHash, meta.channel, block.timestamp);
     }
 }
