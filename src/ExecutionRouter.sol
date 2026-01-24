@@ -11,6 +11,7 @@ import {ExecutionTypes} from "./ExecutionTypes.sol";
 contract ExecutionRouter is Roles {
     mapping(address => mapping(bytes4 => bool)) private whitelist;
     mapping(bytes32 => bool) private executed;
+    mapping(bytes32 => ExecutionTypes.ExecutionRequest) private requests;
     bool private locked;
 
     event TargetWhitelisted(address indexed target, bytes4 indexed selector, bool allowed);
@@ -32,6 +33,19 @@ contract ExecutionRouter is Roles {
         if (request.requestId == bytes32(0)) {
             revert Errors.InvalidId();
         }
+        if (requests[request.requestId].requestId != bytes32(0)) {
+            revert Errors.AlreadyRegistered();
+        }
+        requests[request.requestId] = ExecutionTypes.ExecutionRequest({
+            requestId: request.requestId,
+            ruleId: request.ruleId,
+            target: request.target,
+            value: request.value,
+            gasLimit: request.gasLimit,
+            callData: request.callData,
+            requestedBy: msg.sender,
+            requestedAt: block.timestamp
+        });
         emit ExecutionRequested(request.requestId, request.ruleId, request.target);
     }
 
