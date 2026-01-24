@@ -40,7 +40,7 @@ contract AlertManagerTest is Test {
         bytes32 payload = keccak256("payload");
         bytes32 ruleId = keccak256("rule");
         vm.expectEmit(true, true, false, true);
-        emit AlertManager.AlertTriggered(ruleId, address(this), payload, channel);
+        emit AlertManager.AlertTriggered(ruleId, address(this), payload, channel, block.timestamp);
         manager.emitAlert(ruleId, payload, alertId);
     }
 
