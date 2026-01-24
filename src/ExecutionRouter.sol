@@ -68,6 +68,10 @@ contract ExecutionRouter is Roles {
         return executed[requestId];
     }
 
+    function getRequest(bytes32 requestId) external view returns (ExecutionTypes.ExecutionRequest memory) {
+        return requests[requestId];
+    }
+
     function execute(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) returns (ExecutionTypes.ExecutionReceipt memory) {
         if (executed[request.requestId]) {
             revert Errors.AlreadyRegistered();
