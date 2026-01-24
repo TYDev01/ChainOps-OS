@@ -160,5 +160,8 @@ contract ExecutionRouterTest is Test {
         vm.expectEmit(true, true, true, false);
         emit ExecutionRouter.ExecutionRequested(req.requestId, req.ruleId, req.target);
         router.requestExecution(req);
+        ExecutionTypes.ExecutionRequest memory stored = router.getRequest(req.requestId);
+        assertEq(stored.requestedBy, address(this));
+        assertEq(stored.requestedAt, block.timestamp);
     }
 }
