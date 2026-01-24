@@ -185,6 +185,23 @@ contract ExecutionRouterTest is Test {
         router.execute(req);
     }
 
+    function testExecuteRevertsWhenRequestMissing() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("missing"),
+            ruleId: keccak256("rule"),
+            target: address(0xCAFE),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(DummyTarget.ping.selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        vm.expectRevert();
+        router.execute(req);
+    }
+
     function testRequestExecutionEmitsEvent() public {
         ExecutionRouter router = new ExecutionRouter(address(this));
         router.grantRole(router.EXECUTOR(), address(this));
