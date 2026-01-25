@@ -27,6 +27,7 @@ contract ChainOpsRegistry is Roles {
     event AnalyticsModuleOwnershipTransferred(bytes32 indexed id, address indexed previousOwner, address indexed newOwner);
     event AutomationRuleRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
     event AutomationRuleStatusUpdated(bytes32 indexed id, bool enabled);
+    event AutomationRuleOwnershipTransferred(bytes32 indexed id, address indexed previousOwner, address indexed newOwner);
     event AgentRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
     event AgentStatusUpdated(bytes32 indexed id, bool enabled);
 
@@ -129,6 +130,22 @@ contract ChainOpsRegistry is Roles {
         }
         automationRules[id].enabled = enabled;
         emit AutomationRuleStatusUpdated(id, enabled);
+    }
+
+    function transferAutomationRuleOwnership(bytes32 id, address newOwner) external {
+        Entry storage entry = automationRules[id];
+        if (entry.owner == address(0)) {
+            revert Errors.NotRegistered();
+        }
+        if (newOwner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (msg.sender != entry.owner && !hasRole(RULE_ADMIN, msg.sender)) {
+            revert Errors.Unauthorized();
+        }
+        address previousOwner = entry.owner;
+        entry.owner = newOwner;
+        emit AutomationRuleOwnershipTransferred(id, previousOwner, newOwner);
     }
 
     function setAgentStatus(bytes32 id, bool enabled) external onlyRole(AGENT_ADMIN) {
