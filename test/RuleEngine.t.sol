@@ -215,6 +215,13 @@ contract RuleEngineTest is Test {
         engine.setAgentManager(address(0xCAFE));
     }
 
+    function testSetRegistryRequiresAdmin() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        engine.setRegistry(address(0xCAFE));
+    }
+
     function testEvaluateRespectsAgentScope() public {
         RuleEngine engine = new RuleEngine(address(this));
         engine.grantRole(engine.RULE_ADMIN(), address(this));
