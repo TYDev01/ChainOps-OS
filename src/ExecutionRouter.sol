@@ -5,6 +5,16 @@ import {Errors} from "./Errors.sol";
 import {Roles} from "./Roles.sol";
 import {ExecutionTypes} from "./ExecutionTypes.sol";
 
+interface IExecutionAgentManager {
+    enum Scope {
+        READ,
+        ALERT,
+        EXECUTE
+    }
+
+    function hasScope(address agent, Scope scope) external view returns (bool);
+}
+
 /// @title ExecutionRouter
 /// @notice Safe execution gateway for pre-approved targets.
 /// @dev Invariant: only whitelisted target+selector pairs can be executed.
@@ -13,6 +23,7 @@ contract ExecutionRouter is Roles {
     mapping(bytes32 => bool) private executed;
     mapping(bytes32 => ExecutionTypes.ExecutionRequest) private requests;
     bool private locked;
+    address public agentManager;
 
     event TargetWhitelisted(address indexed target, bytes4 indexed selector, bool allowed);
     event Executed(
@@ -26,8 +37,17 @@ contract ExecutionRouter is Roles {
         uint256 executedAt
     );
     event ExecutionRequested(bytes32 indexed requestId, bytes32 indexed ruleId, address indexed target);
+    event AgentManagerUpdated(address indexed agentManager);
 
     constructor(address admin) Roles(admin) {}
+
+    function setAgentManager(address manager) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (manager == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        agentManager = manager;
+        emit AgentManagerUpdated(manager);
+    }
 
     function requestExecution(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) {
         if (request.requestId == bytes32(0)) {
