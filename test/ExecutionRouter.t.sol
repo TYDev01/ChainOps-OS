@@ -17,6 +17,18 @@ contract ExecutionAgentManagerMock {
     }
 }
 
+contract ExecutionRegistryMock {
+    bool public enabled = true;
+
+    function setEnabled(bool value) external {
+        enabled = value;
+    }
+
+    function getAutomationRule(bytes32) external view returns (address owner, bool entryEnabled, bytes32 metadataHash) {
+        return (address(0xBEEF), enabled, keccak256("meta"));
+    }
+}
+
 contract DummyTarget {
     function ping() external pure returns (uint256) {
         return 42;
@@ -114,11 +126,45 @@ contract ExecutionRouterTest is Test {
         assertTrue(receipt.success);
     }
 
+    function testExecuteRespectsRegistryStatus() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        bytes4 selector = DummyTarget.ping.selector;
+        router.whitelistTarget(address(target), selector, true);
+        ExecutionRegistryMock registry = new ExecutionRegistryMock();
+        router.setRegistry(address(registry));
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        router.requestExecution(req);
+        registry.setEnabled(false);
+        vm.expectRevert();
+        router.execute(req);
+        registry.setEnabled(true);
+        ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
+        assertTrue(receipt.success);
+    }
+
     function testSetAgentManagerRequiresAdmin() public {
         ExecutionRouter router = new ExecutionRouter(address(this));
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         router.setAgentManager(address(0xCAFE));
+    }
+
+    function testSetRegistryRequiresAdmin() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        router.setRegistry(address(0xCAFE));
     }
 
     function testExecuteUsesStoredRequest() public {
@@ -291,6 +337,28 @@ contract ExecutionRouterTest is Test {
         vm.expectRevert();
         router.requestExecution(req);
         agentManager.setAllowed(true);
+        router.requestExecution(req);
+    }
+
+    function testRequestExecutionRespectsRegistryStatus() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        ExecutionRegistryMock registry = new ExecutionRegistryMock();
+        router.setRegistry(address(registry));
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(0xCAFE),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(DummyTarget.ping.selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        registry.setEnabled(false);
+        vm.expectRevert();
+        router.requestExecution(req);
+        registry.setEnabled(true);
         router.requestExecution(req);
     }
 }
