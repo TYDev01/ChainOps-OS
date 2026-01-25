@@ -6,6 +6,10 @@ import {Roles} from "../src/Roles.sol";
 
 contract RolesHarness is Roles {
     constructor(address admin) Roles(admin) {}
+
+    function initialize(address admin) external {
+        _initialize(admin);
+    }
 }
 
 contract RolesTest is Test {
