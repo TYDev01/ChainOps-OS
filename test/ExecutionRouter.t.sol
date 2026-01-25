@@ -5,6 +5,18 @@ import "forge-std/Test.sol";
 import {ExecutionRouter} from "../src/ExecutionRouter.sol";
 import {ExecutionTypes} from "../src/ExecutionTypes.sol";
 
+contract ExecutionAgentManagerMock {
+    bool public allowed;
+
+    function setAllowed(bool value) external {
+        allowed = value;
+    }
+
+    function hasScope(address, uint8) external view returns (bool) {
+        return allowed;
+    }
+}
+
 contract DummyTarget {
     function ping() external pure returns (uint256) {
         return 42;
@@ -70,6 +82,36 @@ contract ExecutionRouterTest is Test {
         assertTrue(receipt.success);
         assertGt(receipt.gasUsed, 0);
         assertTrue(router.isExecuted(req.requestId));
+    }
+
+    function testExecuteRequiresScopeWhenAgentManagerSet() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        DummyTarget target = new DummyTarget();
+        bytes4 selector = DummyTarget.ping.selector;
+        router.whitelistTarget(address(target), selector, true);
+        ExecutionAgentManagerMock agentManager = new ExecutionAgentManagerMock();
+        router.setAgentManager(address(agentManager));
+
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(target),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        router.requestExecution(req);
+
+        agentManager.setAllowed(false);
+        vm.expectRevert();
+        router.execute(req);
+
+        agentManager.setAllowed(true);
+        ExecutionTypes.ExecutionReceipt memory receipt = router.execute(req);
+        assertTrue(receipt.success);
     }
 
     function testExecuteUsesStoredRequest() public {
