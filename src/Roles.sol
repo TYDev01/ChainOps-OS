@@ -12,6 +12,7 @@ abstract contract Roles {
     bytes32 public constant EXECUTOR = keccak256("EXECUTOR");
 
     mapping(bytes32 => mapping(address => bool)) private roles;
+    bool private initialized;
 
     event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
@@ -25,11 +26,19 @@ abstract contract Roles {
 
     /// @notice Initializes the admin role.
     constructor(address admin) {
+        _initialize(admin);
+    }
+
+    function _initialize(address admin) internal {
+        if (initialized) {
+            revert Errors.InvalidId();
+        }
         if (admin == address(0)) {
             revert Errors.InvalidAddress();
         }
         roles[DEFAULT_ADMIN_ROLE][admin] = true;
         emit RoleGranted(DEFAULT_ADMIN_ROLE, admin, msg.sender);
+        initialized = true;
     }
 
     function hasRole(bytes32 role, address account) public view returns (bool) {
