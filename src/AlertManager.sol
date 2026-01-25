@@ -14,6 +14,16 @@ interface IAlertAgentManager {
     function hasScope(address agent, Scope scope) external view returns (bool);
 }
 
+interface IAlertRegistry {
+    struct Entry {
+        address owner;
+        bool enabled;
+        bytes32 metadataHash;
+    }
+
+    function getAutomationRule(bytes32 id) external view returns (Entry memory);
+}
+
 /// @title AlertManager
 /// @notice Emits structured on-chain alerts.
 /// @dev Invariant: alerts are emitted with rule id, trigger source, and payload hash.
@@ -25,10 +35,12 @@ contract AlertManager is Roles {
 
     mapping(bytes32 => AlertMetadata) private alerts;
     address public agentManager;
+    address public registry;
 
     event AlertRegistered(bytes32 indexed alertId, bytes32 indexed channel, bytes32 metadataHash);
     event AlertTriggered(bytes32 indexed ruleId, address indexed triggeredBy, bytes32 payloadHash, bytes32 channel, uint256 timestamp);
     event AgentManagerUpdated(address indexed agentManager);
+    event RegistryUpdated(address indexed registry);
 
     constructor(address admin) Roles(admin) {}
 
@@ -38,6 +50,14 @@ contract AlertManager is Roles {
         }
         agentManager = manager;
         emit AgentManagerUpdated(manager);
+    }
+
+    function setRegistry(address registryAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (registryAddress == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        registry = registryAddress;
+        emit RegistryUpdated(registryAddress);
     }
 
     function registerAlert(bytes32 alertId, bytes32 channel, bytes32 metadataHash) external onlyRole(REGISTRY_ADMIN) {
