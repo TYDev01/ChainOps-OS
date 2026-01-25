@@ -30,6 +30,7 @@ contract ChainOpsRegistry is Roles {
     event AutomationRuleOwnershipTransferred(bytes32 indexed id, address indexed previousOwner, address indexed newOwner);
     event AgentRegistered(bytes32 indexed id, address indexed owner, bytes32 metadataHash);
     event AgentStatusUpdated(bytes32 indexed id, bool enabled);
+    event AgentOwnershipTransferred(bytes32 indexed id, address indexed previousOwner, address indexed newOwner);
 
     constructor(address admin) Roles(admin) {}
 
@@ -154,5 +155,21 @@ contract ChainOpsRegistry is Roles {
         }
         agents[id].enabled = enabled;
         emit AgentStatusUpdated(id, enabled);
+    }
+
+    function transferAgentOwnership(bytes32 id, address newOwner) external {
+        Entry storage entry = agents[id];
+        if (entry.owner == address(0)) {
+            revert Errors.NotRegistered();
+        }
+        if (newOwner == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        if (msg.sender != entry.owner && !hasRole(AGENT_ADMIN, msg.sender)) {
+            revert Errors.Unauthorized();
+        }
+        address previousOwner = entry.owner;
+        entry.owner = newOwner;
+        emit AgentOwnershipTransferred(id, previousOwner, newOwner);
     }
 }
