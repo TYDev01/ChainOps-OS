@@ -16,6 +16,18 @@ contract AlertAgentManagerMock {
     }
 }
 
+contract AlertRegistryMock {
+    bool public enabled = true;
+
+    function setEnabled(bool value) external {
+        enabled = value;
+    }
+
+    function getAutomationRule(bytes32) external view returns (address owner, bool entryEnabled, bytes32 metadataHash) {
+        return (address(0xBEEF), enabled, keccak256("meta"));
+    }
+}
+
 contract AlertManagerTest is Test {
     function testConstructorSetsAdmin() public {
         address admin = address(0xA11CE);
@@ -83,5 +95,29 @@ contract AlertManagerTest is Test {
         vm.prank(address(0xBEEF));
         vm.expectRevert();
         manager.setAgentManager(address(0xCAFE));
+    }
+
+    function testEmitAlertRespectsRegistryStatus() public {
+        AlertManager manager = new AlertManager(address(this));
+        manager.grantRole(manager.REGISTRY_ADMIN(), address(this));
+        manager.grantRole(manager.RULE_ADMIN(), address(this));
+        AlertRegistryMock registry = new AlertRegistryMock();
+        manager.setRegistry(address(registry));
+        bytes32 alertId = keccak256("alert");
+        manager.registerAlert(alertId, keccak256("channel"), keccak256("meta"));
+
+        registry.setEnabled(false);
+        vm.expectRevert();
+        manager.emitAlert(keccak256("rule"), keccak256("payload"), alertId);
+
+        registry.setEnabled(true);
+        manager.emitAlert(keccak256("rule"), keccak256("payload2"), alertId);
+    }
+
+    function testSetRegistryRequiresAdmin() public {
+        AlertManager manager = new AlertManager(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        manager.setRegistry(address(0xCAFE));
     }
 }
