@@ -77,4 +77,11 @@ contract AlertManagerTest is Test {
         agentManager.setAllowed(true);
         manager.emitAlert(keccak256("rule"), keccak256("payload2"), alertId);
     }
+
+    function testSetAgentManagerRequiresAdmin() public {
+        AlertManager manager = new AlertManager(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        manager.setAgentManager(address(0xCAFE));
+    }
 }
