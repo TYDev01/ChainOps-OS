@@ -15,6 +15,16 @@ interface IExecutionAgentManager {
     function hasScope(address agent, Scope scope) external view returns (bool);
 }
 
+interface IExecutionRegistry {
+    struct Entry {
+        address owner;
+        bool enabled;
+        bytes32 metadataHash;
+    }
+
+    function getAutomationRule(bytes32 id) external view returns (Entry memory);
+}
+
 /// @title ExecutionRouter
 /// @notice Safe execution gateway for pre-approved targets.
 /// @dev Invariant: only whitelisted target+selector pairs can be executed.
@@ -24,6 +34,7 @@ contract ExecutionRouter is Roles {
     mapping(bytes32 => ExecutionTypes.ExecutionRequest) private requests;
     bool private locked;
     address public agentManager;
+    address public registry;
 
     event TargetWhitelisted(address indexed target, bytes4 indexed selector, bool allowed);
     event Executed(
@@ -38,6 +49,7 @@ contract ExecutionRouter is Roles {
     );
     event ExecutionRequested(bytes32 indexed requestId, bytes32 indexed ruleId, address indexed target);
     event AgentManagerUpdated(address indexed agentManager);
+    event RegistryUpdated(address indexed registry);
 
     constructor(address admin) Roles(admin) {}
 
@@ -47,6 +59,14 @@ contract ExecutionRouter is Roles {
         }
         agentManager = manager;
         emit AgentManagerUpdated(manager);
+    }
+
+    function setRegistry(address registryAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (registryAddress == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        registry = registryAddress;
+        emit RegistryUpdated(registryAddress);
     }
 
     function requestExecution(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) {
