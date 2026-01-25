@@ -197,4 +197,28 @@ contract ChainOpsRegistryTest is Test {
         vm.expectRevert();
         registry.transferAutomationRuleOwnership(id, address(0xCAFE));
     }
+
+    function testTransferAgentOwnership() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.AGENT_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_AGENT(), address(this), meta);
+        registry.registerAgent(id, address(this), meta);
+        vm.expectEmit(true, true, true, false);
+        emit ChainOpsRegistry.AgentOwnershipTransferred(id, address(this), address(0xBEEF));
+        registry.transferAgentOwnership(id, address(0xBEEF));
+        ChainOpsRegistry.Entry memory entry = registry.getAgent(id);
+        assertEq(entry.owner, address(0xBEEF));
+    }
+
+    function testTransferAgentOwnershipRejectsUnauthorized() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.AGENT_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_AGENT(), address(this), meta);
+        registry.registerAgent(id, address(this), meta);
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        registry.transferAgentOwnership(id, address(0xCAFE));
+    }
 }
