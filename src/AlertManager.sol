@@ -82,6 +82,12 @@ contract AlertManager is Roles {
                 revert Errors.ScopeNotAllowed();
             }
         }
+        if (registry != address(0)) {
+            IAlertRegistry.Entry memory entry = IAlertRegistry(registry).getAutomationRule(ruleId);
+            if (!entry.enabled) {
+                revert Errors.Disabled();
+            }
+        }
         if (ruleId == bytes32(0)) {
             revert Errors.InvalidId();
         }
