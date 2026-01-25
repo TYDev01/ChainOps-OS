@@ -15,6 +15,16 @@ interface IAgentManager {
     function hasScope(address agent, Scope scope) external view returns (bool);
 }
 
+interface IChainOpsRegistry {
+    struct Entry {
+        address owner;
+        bool enabled;
+        bytes32 metadataHash;
+    }
+
+    function getAutomationRule(bytes32 id) external view returns (Entry memory);
+}
+
 /// @title RuleEngine
 /// @notice Defines and evaluates automation rules.
 /// @dev Invariant: rules are data-only and evaluation emits events.
@@ -24,6 +34,7 @@ contract RuleEngine is Roles {
     mapping(bytes32 => bool) private hasLastValue;
     mapping(bytes32 => FrequencyState) private frequencyStates;
     address public agentManager;
+    address public registry;
 
     struct FrequencyState {
         uint256 count;
@@ -34,6 +45,7 @@ contract RuleEngine is Roles {
     event RuleEvaluated(bytes32 indexed ruleId, address indexed triggeredBy, bool passed, bytes32 payloadHash);
     event RuleStatusUpdated(bytes32 indexed ruleId, bool enabled);
     event AgentManagerUpdated(address indexed agentManager);
+    event RegistryUpdated(address indexed registry);
 
     constructor(address admin) Roles(admin) {}
 
@@ -43,6 +55,14 @@ contract RuleEngine is Roles {
         }
         agentManager = manager;
         emit AgentManagerUpdated(manager);
+    }
+
+    function setRegistry(address registryAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (registryAddress == address(0)) {
+            revert Errors.InvalidAddress();
+        }
+        registry = registryAddress;
+        emit RegistryUpdated(registryAddress);
     }
 
     function registerRule(RuleTypes.Rule calldata rule) external onlyRole(RULE_ADMIN) {
