@@ -162,4 +162,15 @@ contract ChainOpsRegistryTest is Test {
         ChainOpsRegistry.Entry memory entry = registry.getAnalyticsModule(id);
         assertEq(entry.owner, address(0xBEEF));
     }
+
+    function testTransferAnalyticsModuleOwnershipRejectsUnauthorized() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.REGISTRY_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_ANALYTICS(), address(this), meta);
+        registry.registerAnalyticsModule(id, address(this), meta);
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        registry.transferAnalyticsModuleOwnership(id, address(0xCAFE));
+    }
 }
