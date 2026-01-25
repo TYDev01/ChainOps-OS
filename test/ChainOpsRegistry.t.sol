@@ -173,4 +173,28 @@ contract ChainOpsRegistryTest is Test {
         vm.expectRevert();
         registry.transferAnalyticsModuleOwnership(id, address(0xCAFE));
     }
+
+    function testTransferAutomationRuleOwnership() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.RULE_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_RULE(), address(this), meta);
+        registry.registerAutomationRule(id, address(this), meta);
+        vm.expectEmit(true, true, true, false);
+        emit ChainOpsRegistry.AutomationRuleOwnershipTransferred(id, address(this), address(0xBEEF));
+        registry.transferAutomationRuleOwnership(id, address(0xBEEF));
+        ChainOpsRegistry.Entry memory entry = registry.getAutomationRule(id);
+        assertEq(entry.owner, address(0xBEEF));
+    }
+
+    function testTransferAutomationRuleOwnershipRejectsUnauthorized() public {
+        ChainOpsRegistry registry = new ChainOpsRegistry(address(this));
+        registry.grantRole(registry.RULE_ADMIN(), address(this));
+        bytes32 meta = keccak256("meta");
+        bytes32 id = registry.computeId(registry.KIND_RULE(), address(this), meta);
+        registry.registerAutomationRule(id, address(this), meta);
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        registry.transferAutomationRuleOwnership(id, address(0xCAFE));
+    }
 }
