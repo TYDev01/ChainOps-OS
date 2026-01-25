@@ -92,6 +92,12 @@ contract RuleEngine is Roles {
                 revert Errors.ScopeNotAllowed();
             }
         }
+        if (registry != address(0)) {
+            IChainOpsRegistry.Entry memory entry = IChainOpsRegistry(registry).getAutomationRule(ruleId);
+            if (!entry.enabled) {
+                revert Errors.Disabled();
+            }
+        }
         RuleTypes.Rule memory rule = rules[ruleId];
         if (rule.id == bytes32(0)) {
             revert Errors.RuleNotFound();
