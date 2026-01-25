@@ -76,6 +76,12 @@ contract ExecutionRouter is Roles {
                 revert Errors.ScopeNotAllowed();
             }
         }
+        if (registry != address(0)) {
+            IExecutionRegistry.Entry memory entry = IExecutionRegistry(registry).getAutomationRule(request.ruleId);
+            if (!entry.enabled) {
+                revert Errors.Disabled();
+            }
+        }
         if (request.requestId == bytes32(0)) {
             revert Errors.InvalidId();
         }
@@ -128,6 +134,12 @@ contract ExecutionRouter is Roles {
         ExecutionTypes.ExecutionRequest memory stored = requests[request.requestId];
         if (stored.requestId == bytes32(0)) {
             revert Errors.NotRegistered();
+        }
+        if (registry != address(0)) {
+            IExecutionRegistry.Entry memory entry = IExecutionRegistry(registry).getAutomationRule(stored.ruleId);
+            if (!entry.enabled) {
+                revert Errors.Disabled();
+            }
         }
         ExecutionTypes.ExecutionRequest memory req = stored;
         if (executed[req.requestId]) {
