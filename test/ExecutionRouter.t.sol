@@ -271,4 +271,26 @@ contract ExecutionRouterTest is Test {
         assertEq(stored.requestedBy, address(this));
         assertEq(stored.requestedAt, block.timestamp);
     }
+
+    function testRequestExecutionRequiresScopeWhenAgentManagerSet() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        router.grantRole(router.EXECUTOR(), address(this));
+        ExecutionAgentManagerMock agentManager = new ExecutionAgentManagerMock();
+        router.setAgentManager(address(agentManager));
+        ExecutionTypes.ExecutionRequest memory req = ExecutionTypes.ExecutionRequest({
+            requestId: keccak256("req"),
+            ruleId: keccak256("rule"),
+            target: address(0xCAFE),
+            value: 0,
+            gasLimit: 100000,
+            callData: abi.encodeWithSelector(DummyTarget.ping.selector),
+            requestedBy: address(this),
+            requestedAt: block.timestamp
+        });
+        agentManager.setAllowed(false);
+        vm.expectRevert();
+        router.requestExecution(req);
+        agentManager.setAllowed(true);
+        router.requestExecution(req);
+    }
 }
