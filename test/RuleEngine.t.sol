@@ -17,6 +17,18 @@ contract AgentManagerMock {
     }
 }
 
+contract RegistryMock {
+    bool public enabled = true;
+
+    function setEnabled(bool value) external {
+        enabled = value;
+    }
+
+    function getAutomationRule(bytes32) external view returns (address owner, bool entryEnabled, bytes32 metadataHash) {
+        return (address(0xBEEF), enabled, keccak256("meta"));
+    }
+}
+
 contract RuleEngineTest is Test {
     function testConstructorSetsAdmin() public {
         address admin = address(0xA11CE);
@@ -225,6 +237,32 @@ contract RuleEngineTest is Test {
         engine.evaluate(rule.id, 11, keccak256("payload"));
 
         manager.setAllowed(true);
+        bool passed = engine.evaluate(rule.id, 11, keccak256("payload2"));
+        assertTrue(passed);
+    }
+
+    function testEvaluateRespectsRegistryStatus() public {
+        RuleEngine engine = new RuleEngine(address(this));
+        engine.grantRole(engine.RULE_ADMIN(), address(this));
+        RegistryMock registry = new RegistryMock();
+        engine.setRegistry(address(registry));
+        RuleTypes.Rule memory rule = RuleTypes.Rule({
+            id: keccak256("rule"),
+            category: RuleTypes.RuleCategory.THRESHOLD,
+            comparison: RuleTypes.Comparison.GT,
+            threshold: 10,
+            timeWindow: 0,
+            frequency: 0,
+            enabled: true,
+            metadataHash: keccak256("meta")
+        });
+        engine.registerRule(rule);
+
+        registry.setEnabled(false);
+        vm.expectRevert();
+        engine.evaluate(rule.id, 11, keccak256("payload"));
+
+        registry.setEnabled(true);
         bool passed = engine.evaluate(rule.id, 11, keccak256("payload2"));
         assertTrue(passed);
     }
