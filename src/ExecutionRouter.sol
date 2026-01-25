@@ -93,6 +93,12 @@ contract ExecutionRouter is Roles {
     }
 
     function execute(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) returns (ExecutionTypes.ExecutionReceipt memory) {
+        if (agentManager != address(0)) {
+            bool allowed = IExecutionAgentManager(agentManager).hasScope(msg.sender, IExecutionAgentManager.Scope.EXECUTE);
+            if (!allowed) {
+                revert Errors.ScopeNotAllowed();
+            }
+        }
         ExecutionTypes.ExecutionRequest memory stored = requests[request.requestId];
         if (stored.requestId == bytes32(0)) {
             revert Errors.NotRegistered();
