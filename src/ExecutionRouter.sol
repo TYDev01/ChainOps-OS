@@ -50,6 +50,12 @@ contract ExecutionRouter is Roles {
     }
 
     function requestExecution(ExecutionTypes.ExecutionRequest calldata request) external onlyRole(EXECUTOR) {
+        if (agentManager != address(0)) {
+            bool allowed = IExecutionAgentManager(agentManager).hasScope(msg.sender, IExecutionAgentManager.Scope.EXECUTE);
+            if (!allowed) {
+                revert Errors.ScopeNotAllowed();
+            }
+        }
         if (request.requestId == bytes32(0)) {
             revert Errors.InvalidId();
         }
