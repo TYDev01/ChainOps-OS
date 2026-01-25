@@ -114,6 +114,13 @@ contract ExecutionRouterTest is Test {
         assertTrue(receipt.success);
     }
 
+    function testSetAgentManagerRequiresAdmin() public {
+        ExecutionRouter router = new ExecutionRouter(address(this));
+        vm.prank(address(0xBEEF));
+        vm.expectRevert();
+        router.setAgentManager(address(0xCAFE));
+    }
+
     function testExecuteUsesStoredRequest() public {
         ExecutionRouter router = new ExecutionRouter(address(this));
         router.grantRole(router.EXECUTOR(), address(this));
