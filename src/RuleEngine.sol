@@ -35,6 +35,7 @@ contract RuleEngine is Roles {
     mapping(bytes32 => FrequencyState) private frequencyStates;
     address public agentManager;
     address public registry;
+    uint256[44] private __gap;
 
     struct FrequencyState {
         uint256 count;
