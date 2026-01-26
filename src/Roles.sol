@@ -13,6 +13,7 @@ abstract contract Roles {
 
     mapping(bytes32 => mapping(address => bool)) private roles;
     bool private initialized;
+    uint256[48] private __gap;
 
     event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
