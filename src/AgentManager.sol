@@ -21,6 +21,7 @@ contract AgentManager is Roles {
     }
 
     mapping(address => Agent) private agents;
+    uint256[48] private __gap;
 
     event AgentRegistered(address indexed agent, bytes32 metadataHash);
     event AgentEnabled(address indexed agent);
