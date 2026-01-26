@@ -49,4 +49,10 @@ contract RolesTest is Test {
         roles.revokeRole(execRole, address(0xCAFE));
         vm.stopPrank();
     }
+
+    function testInitializeRejectsSecondCall() public {
+        RolesHarness roles = new RolesHarness(address(this));
+        vm.expectRevert();
+        roles.initialize(address(0xBEEF));
+    }
 }
